@@ -218,6 +218,19 @@
                 </table>
             </div>
 
+            <!-- Total Nilai Bar Graph -->
+            <div class="mt-6 p-5 bg-slate-50 border border-slate-200 rounded-xl shadow-sm print:border-none print:p-0 print:shadow-none print:mt-4 print:bg-transparent">
+                <div class="flex justify-between items-end mb-2">
+                    <h4 class="font-bold text-slate-700 print:text-black"><i class="fas fa-chart-bar text-red-500 mr-2 print:hidden"></i>Total Nilai Keseluruhan</h4>
+                    <span class="font-bold text-red-600 text-lg print:text-black"><span id="resTotalText">0</span> <span class="text-sm text-slate-400 print:text-black font-medium">/ 500</span></span>
+                </div>
+                <div class="w-full bg-slate-200 rounded-full h-4 md:h-5 print:hidden overflow-hidden shadow-inner">
+                    <div id="resTotalBar" class="bg-gradient-to-r from-red-400 to-red-600 h-full rounded-full w-0 transition-all duration-[1500ms] ease-out relative">
+                        <div class="absolute inset-0 bg-white/20 w-full h-full rounded-full"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Area Tanda Tangan (Hanya muncul saat diprint) -->
             <div class="hidden print:flex justify-end mt-10 print:mt-8">
                 <div class="text-center w-64 text-[11pt]">
@@ -288,8 +301,8 @@
         // URL API UNTUK CHAT (Dari Google Apps Script)
         const CHAT_API_URL = "https://script.google.com/macros/s/AKfycbwg-FmkQBT2NC-KG5ePERfTsP4bWDfnGbN2xEGRlfTJlM5lb6sP_1EweQV2mqVjwbQUDQ/exec";
         
-        // Pemetaan struktur tabel berdasarkan file TSV
-        const INFO_MAP = { nis: 1, nisn: 2, nama: 3, ttl: 4, jenkel: 5, kelas: 6, alamat: 7, urut: 69 };
+        // Pemetaan struktur tabel berdasarkan file TSV (BQ = 68)
+        const INFO_MAP = { nis: 1, nisn: 2, nama: 3, ttl: 4, jenkel: 5, kelas: 6, alamat: 7, total: 68, urut: 69 };
 
         // Pemetaan indeks nilai tiap mata pelajaran
         const SUBJECTS = [
@@ -592,6 +605,27 @@
                 <td class="p-3 md:p-4">${avg91}</td>
             `;
             tbody.appendChild(trAvg);
+
+            // ==========================================
+            // LOGIKA ANIMASI BAR GRAPH TOTAL NILAI
+            // ==========================================
+            const totalNilaiRaw = row[INFO_MAP.total] || '0';
+            
+            // Konversi ke angka (jika ada koma, ubah ke titik untuk parsing desimal yang aman)
+            const totalNilaiNum = parseFloat(totalNilaiRaw.replace(',', '.')) || 0;
+            
+            // Hitung persentase (maksimal 100% jika nilainya kebetulan lebih dari 500)
+            const percentage = Math.min((totalNilaiNum / 500) * 100, 100);
+            
+            document.getElementById('resTotalText').textContent = totalNilaiRaw !== '0' ? totalNilaiRaw : '-';
+            
+            const barElement = document.getElementById('resTotalBar');
+            barElement.style.width = '0%'; // Reset ke 0 sebelum dianimasikan
+            
+            // Beri sedikit jeda agar CSS transition menangkap perubahan dari 0% ke persentase asli
+            setTimeout(() => {
+                barElement.style.width = percentage + '%';
+            }, 100);
         }
     </script>
 </body>
